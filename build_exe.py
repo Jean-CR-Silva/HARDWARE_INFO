@@ -20,9 +20,9 @@ def main():
     print("1. Verificando se PyInstaller está instalado...")
     try:
         import PyInstaller
-        print("   ✓ PyInstaller encontrado")
+        print("   PyInstaller encontrado")
     except ImportError:
-        print("   ✗ PyInstaller não está instalado")
+        print("   PyInstaller não está instalado")
         print("   Instalando PyInstaller...")
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
     
@@ -33,21 +33,28 @@ def main():
     project_dir = Path(__file__).parent
     os.chdir(project_dir)
     
+    # Separador de caminhos para o Windows/Unix no PyInstaller
+    data_sep = ';' if os.name == 'nt' else ':'
+    
+    # Nome do executável final
+    exe_name = "HardwareInfo.exe" if os.name == 'nt' else "HardwareInfo"
+    
     # Comando PyInstaller
     command = [
         sys.executable,
         "-m",
-        "pyinstaller",
+        "PyInstaller",
         "--onefile",
         "--windowed",
         "--name=HardwareInfo",
         "--distpath=dist",
-        "--buildpath=build",
+        "--workpath=build",
         "--specpath=.",
-        "--add-data=services:services",
-        "--add-data=ui:ui",
-        "--add-data=utils:utils",
+        f"--add-data=services{data_sep}services",
+        f"--add-data=ui{data_sep}ui",
+        f"--add-data=utils{data_sep}utils",
         "--hidden-import=psutil",
+        "--hidden-import=reportlab",
         "main.py"
     ]
     
@@ -60,20 +67,20 @@ def main():
         
         print()
         print("=" * 60)
-        print("✓ SUCESSO! Executável gerado com sucesso!")
+        print("SUCESSO! Executável gerado com sucesso!")
         print("=" * 60)
         print()
-        print(f"Localização: {project_dir / 'dist' / 'HardwareInfo.exe'}")
+        print(f"Localização: {project_dir / 'dist' / exe_name}")
         print()
         print("O arquivo pode ser executado independentemente:")
-        print(f"  - Copie para qualquer computador")
+        print(f"  - Copie para qualquer computador com o mesmo sistema operacional")
         print(f"  - Não requer Python ou dependências instaladas")
         print()
         
     except subprocess.CalledProcessError as e:
         print()
         print("=" * 60)
-        print("✗ ERRO ao gerar executável!")
+        print("ERRO ao gerar executável!")
         print("=" * 60)
         print()
         print(f"Erro: {str(e)}")

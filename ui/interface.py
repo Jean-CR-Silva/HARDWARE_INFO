@@ -134,25 +134,37 @@ class HardwareInfoApp:
         
         # Frame dentro do canvas para conter os widgets
         content_frame = tk.Frame(canvas, bg=self.bg_color)
-        canvas.create_window((0, 0), window=content_frame, anchor="nw")
+        canvas_window = canvas.create_window((0, 0), window=content_frame, anchor="nw")
+        content_frame.grid_columnconfigure(0, weight=1, uniform="col")
+        content_frame.grid_columnconfigure(1, weight=1, uniform="col")
+        
+        # Ajustar largura interna ao redimensionar
+        def _on_canvas_configure(event):
+            canvas.itemconfig(canvas_window, width=event.width)
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        canvas.bind("<Configure>", _on_canvas_configure)
         
         # ===== INFO FIELDS =====
         info_fields = [
             ("serial", "Número de Série (BIOS)"),
             ("manufacturer", "Fabricante"),
             ("model", "Modelo do Computador"),
+            ("host", "Nome do Host"),
             ("cpu", "Processador (CPU)"),
             ("ram", "Memória RAM"),
             ("mac", "Endereço MAC"),
-            ("os", "Sistema Operacional")
+            ("os", "Sistema Operacional"),
+            ("battery", "Saúde da Bateria")
         ]
         
         for idx, (key, label) in enumerate(info_fields):
-            self.create_info_field(content_frame, key, label, idx)
+            row = idx // 2
+            col = idx % 2
+            self.create_info_field(content_frame, key, label, row, col)
         
         # Adicionar espaçamento no final
         spacer = tk.Frame(content_frame, bg=self.bg_color, height=10)
-        spacer.pack(fill=tk.X)
+        spacer.grid(row=(len(info_fields) + 1) // 2, column=0, columnspan=2, sticky="ew")
         
         # Atualizar tamanho do scroll
         content_frame.update_idletasks()
@@ -226,7 +238,7 @@ class HardwareInfoApp:
         export_pdf_button.bind("<Enter>", lambda e: export_pdf_button.config(bg="#c82333"))
         export_pdf_button.bind("<Leave>", lambda e: export_pdf_button.config(bg="#dc3545"))
 
-    def create_info_field(self, parent: tk.Frame, key: str, label: str, row: int) -> None:
+    def create_info_field(self, parent: tk.Frame, key: str, label: str, row: int, column: int) -> None:
         """
         Cria um campo de informação responsivo.
         
@@ -235,11 +247,10 @@ class HardwareInfoApp:
             key (str): Chave da informação
             label (str): Rótulo do campo
             row (int): Posição da linha
+            column (int): Posição da coluna
         """
-        field_frame = tk.Frame(parent, bg="white", relief=tk.FLAT)
-        field_frame.pack(fill=tk.X, pady=8, padx=15)
-        
-        # Configurar grid para responsividade
+        field_frame = tk.Frame(parent, bg="white", relief=tk.FLAT, bd=1)
+        field_frame.grid(row=row, column=column, sticky="nsew", padx=10, pady=8)
         field_frame.grid_columnconfigure(0, weight=1)
         
         # Label
@@ -251,7 +262,7 @@ class HardwareInfoApp:
             fg=self.header_color,
             anchor="w"
         )
-        label_widget.pack(fill=tk.X, padx=12, pady=(8, 2))
+        label_widget.pack(fill=tk.X, padx=12, pady=(10, 2))
         
         # Value Label (será atualizado) - com wraplength responsivo
         value_label = tk.Label(
@@ -261,10 +272,10 @@ class HardwareInfoApp:
             bg="white",
             fg="#555555",
             anchor="w",
-            wraplength=600,
+            wraplength=360,
             justify=tk.LEFT
         )
-        value_label.pack(fill=tk.X, padx=12, pady=(2, 8))
+        value_label.pack(fill=tk.X, padx=12, pady=(2, 12))
         
         # Armazenar referência
         self.info_labels[key] = value_label

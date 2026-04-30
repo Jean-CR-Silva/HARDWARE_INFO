@@ -145,6 +145,7 @@ def get_label_for_key(key: str) -> str:
         "serial": "Número de Série (BIOS)",
         "model": "Modelo do Computador",
         "manufacturer": "Fabricante",
+        "host": "Nome do Host",
         "cpu": "Processador (CPU)",
         "ram": "Memória RAM",
         "mac": "Endereço MAC",
